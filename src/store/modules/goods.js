@@ -1,4 +1,4 @@
-import {reqSpecCount,reqSpecList} from "../../util/request"
+import {reqGoodsCount,reqGoodsList} from "../../util/request"
 const state={
     //列表数据
     list:[],
@@ -12,9 +12,6 @@ const state={
 const mutations={
     //修改list
     changeList(state,arr){
-        arr.forEach(i => {
-            i.attrs=JSON.parse(i.attrs)
-        });
         state.list=arr;
     },
     //修改总数
@@ -28,17 +25,12 @@ const mutations={
 }
 const actions={
     //获取列表数据
-    reqList(context,bool){
-        var params={}
-        if(bool){
-            params={}
-        }else{
-            params={
-                page:context.state.page,
-                size:context.state.size
-            }
+    reqList(context){
+        const params={
+            page:context.state.page,
+            size:context.state.size
         }
-        reqSpecList(params).then(res=>{
+        reqGoodsList(params).then(res=>{
             //没有取到数据
             if(res.data.list.length==0&&context.state.page>1){
                 context.commit("changePage",context.state.page-1);
@@ -50,7 +42,7 @@ const actions={
     },
     //获取总的数量
     reqTotal(context){
-        reqSpecCount().then(res=>{
+        reqGoodsCount().then(res=>{
             context.commit("changeTotal",res.data.list[0].total)
         })
     },

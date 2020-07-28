@@ -12,6 +12,7 @@ const baseUrl = "/api";
 axios.interceptors.response.use(res => {
     console.group("本次路径：" + res.config.url)
     console.log(res);
+    console.groupEnd()
     return res;
 })
 //菜单添加
@@ -263,7 +264,93 @@ export const reqSpecDelete = params => {
 }
 
 
+// =====================================商品=============================
+//商品添加
+export const reqGoodsAdd = (params) => {
+    var formData = new FormData()
+    for (let i in params) {
+        formData.append(i, params[i])
+    }
+    // console.log(formData)
+    return axios({
+        url: baseUrl + "/api/goodsadd",
+        method: "post",
+        data: formData
+    })
+
+}
+
+//商品总数
+export const reqGoodsCount=()=>{
+    return axios({
+        url:baseUrl+"/api/goodscount",
+        method:"get"
+    })
+}
+//商品列表
+export const reqGoodsList = (params) => {
+    return axios({
+        url: baseUrl + "/api/goodslist",
+        method: "get",
+        params: params
+    })
+}
+
+//商品某一个条数据
+export const reqGoodsDetail = params => {
+    return axios({
+        url: baseUrl + "/api/goodsinfo",
+        method: "get",
+        params
+    })
+}
+//商品修改
+export const reqGoodsUpdata = params => {
+    var formData = new FormData()
+    for (let i in params) {
+        formData.append(i, params[i])
+    }
+    return axios({
+        url: baseUrl + "/api/goodsedit",
+        method: "post",
+        data: formData
+    })
+}
+
+//商品删除
+export const reqGoodsDel = params => {
+    return axios({
+        url: baseUrl + "/api/goodsdelete",
+        method: "post",
+        data: qs.stringify(params)
+    })
+}
 
 
 
+// =====================================会员=============================
+
+//会员列表
+export const reqMemberList = () => {
+    return axios({
+        url: baseUrl + "/api/memberlist",
+        method: "get"        
+    })
+}
+//会员获取一条
+export const reqMemberInfo = (params) => {
+    return axios({
+        url: baseUrl + "/api/memberinfo",
+        method: "get" ,
+        params
+    })
+}
+//会员修改
+export const reqMemberUpdata = (params) => {
+    return axios({
+        url: baseUrl + "/api/memberedit",
+        method: "post" ,
+        data:qs.stringify(params)
+    })
+}
 
