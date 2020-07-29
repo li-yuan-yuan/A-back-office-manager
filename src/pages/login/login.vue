@@ -9,8 +9,9 @@
   </div>
 </template>
 <script>
-import {reqLogin} from "../../util/request"
-import {successAlter,warningAlter} from "../../util/alter"
+import { mapGetters, mapActions } from "vuex";
+import { reqLogin } from "../../util/request";
+import { successAlter, warningAlter } from "../../util/alter";
 export default {
   data() {
     return {
@@ -23,11 +24,22 @@ export default {
   computed: {},
   components: {},
   methods: {
-    login(){
-      reqLogin(this.user).then(res=>{
-        this.$router.push("/")
-      })
-    }
+    ...mapActions({
+      changeUser: "changeUser",
+    }),
+    login() {
+      reqLogin(this.user).then((res) => {
+        if (res.data.code === 200) {
+          //登陆成功
+          successAlter(res.data.msg);
+          this.changeUser(res.data.list);
+          //跳转页面
+          this.$router.push("/home");
+        }else{
+          warningAlter(res.data.msg);
+        }
+      });
+    },
   },
   mounted() {},
   beforeDestroy() {},

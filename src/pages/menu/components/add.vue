@@ -74,6 +74,7 @@ export default {
         "/goods",
         "/banner",
         "/seckill",
+        "/member"
       ],
       form: {
         pid: 0,
@@ -114,6 +115,9 @@ export default {
       }
     },
     add() {
+      // if(!this.info.isAdd){
+      //   this.empty();
+      // }
       reqMenuAdd(this.form).then((res) => {
         if (res.data.code == 200) {
           successAlter(res.data.msg);

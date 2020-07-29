@@ -1,20 +1,35 @@
 import axios from "axios";
 import qs from "qs";
+import store from "../store/index"
 
 // 开发模式
 const baseUrl = "/api";
 // 生产模式
 // const baseUrl="";
 
+//请求拦截
+axios.interceptors.request.use(config => {
+    if (config.url != baseUrl + '/api/userlogin') {
+        config.headers.authorization = store.state.user.token;
+    }
+    return config
+})
 
-
-//响应拦截
+//响应拦截开发使用
 axios.interceptors.response.use(res => {
-    console.group("本次路径：" + res.config.url)
-    console.log(res);
-    console.groupEnd()
+    // console.group("本次路径：" + res.config.url)
+    // console.log(res)
+    // console.groupEnd()
+
+    if(res.data.msg==="登录已过期或访问权限受限"){
+        warningAlert("登录已过期或访问权限受限")
+        router.push("/login");
+        return;
+    }
     return res;
 })
+
+
 //菜单添加
 export const reqMenuAdd = (params) => {
     return axios({
@@ -183,7 +198,7 @@ export const reqCateList = params => {
     })
 }
 //商品分类详情
-export const reqCateDetail= params => {
+export const reqCateDetail = params => {
     return axios({
         url: baseUrl + "/api/cateinfo",
         method: "get",
@@ -191,7 +206,7 @@ export const reqCateDetail= params => {
     })
 }
 //商品分类修改
-export const reqCateUpdata= params => {
+export const reqCateUpdata = params => {
     var formData = new FormData()
     for (let i in params) {
         formData.append(i, params[i])
@@ -199,15 +214,15 @@ export const reqCateUpdata= params => {
     return axios({
         url: baseUrl + "/api/cateedit",
         method: "post",
-        data:formData
+        data: formData
     })
 }
 //商品分类删除
-export const reqCateDel= params => {
+export const reqCateDel = params => {
     return axios({
         url: baseUrl + "/api/catedelete",
         method: "post",
-        data:qs.stringify(params)
+        data: qs.stringify(params)
     })
 }
 
@@ -222,10 +237,10 @@ export const reqSpecAdd = (params) => {
 }
 
 //商品规格总数
-export const reqSpecCount=()=>{
+export const reqSpecCount = () => {
     return axios({
-        url:baseUrl+"/api/specscount",
-        method:"get"
+        url: baseUrl + "/api/specscount",
+        method: "get"
     })
 }
 //商品规格列表
@@ -281,10 +296,10 @@ export const reqGoodsAdd = (params) => {
 }
 
 //商品总数
-export const reqGoodsCount=()=>{
+export const reqGoodsCount = () => {
     return axios({
-        url:baseUrl+"/api/goodscount",
-        method:"get"
+        url: baseUrl + "/api/goodscount",
+        method: "get"
     })
 }
 //商品列表
@@ -334,14 +349,14 @@ export const reqGoodsDel = params => {
 export const reqMemberList = () => {
     return axios({
         url: baseUrl + "/api/memberlist",
-        method: "get"        
+        method: "get"
     })
 }
 //会员获取一条
 export const reqMemberInfo = (params) => {
     return axios({
         url: baseUrl + "/api/memberinfo",
-        method: "get" ,
+        method: "get",
         params
     })
 }
@@ -349,8 +364,88 @@ export const reqMemberInfo = (params) => {
 export const reqMemberUpdata = (params) => {
     return axios({
         url: baseUrl + "/api/memberedit",
-        method: "post" ,
-        data:qs.stringify(params)
+        method: "post",
+        data: qs.stringify(params)
+    })
+}
+// =====================================轮播图=============================
+export const reqBannerAdd = (params) => {
+    var formData = new FormData()
+    for (let i in params) {
+        formData.append(i, params[i])
+    }
+    return axios({
+        url: baseUrl + "/api/banneradd",
+        method: "post",
+        data: formData
+    })
+}
+export const reqBannerList = () => {
+    return axios({
+        url: baseUrl + "/api/bannerlist",
+        method: "get"
+    })
+}
+export const reqBannerDetail = (params) => {
+    return axios({
+        url: baseUrl + "/api/bannerinfo",
+        method: "get",
+        params
+    })
+}
+export const reqBannerUpdata = (params) => {
+    var formData = new FormData()
+    for (let i in params) {
+        formData.append(i, params[i])
+    }
+    return axios({
+        url: baseUrl + "/api/banneredit",
+        method: "post",
+        data: formData
+    })
+}
+export const reqBannerDel = (params) => {
+    return axios({
+        url: baseUrl + "/api/bannerdelete",
+        method: 'post',
+        data: qs.stringify(params)
     })
 }
 
+
+// =====================================秒杀活动=============================
+export const reqSeckillAdd = (params) => {
+    return axios({
+        url: baseUrl + "/api/seckadd",
+        method: "post",
+        data: params
+    })
+}
+export const reqSeckillList = (params) => {
+    return axios({
+        url: baseUrl + "/api/secklist",
+        method: "get",
+        params
+    })
+}
+export const reqSeckillDetail = (params) => {
+    return axios({
+        url: baseUrl + "/api/seckinfo",
+        method: "get",
+        params
+    })
+}
+export const reqSeckillUpdata = (params) => {
+    return axios({
+        url: baseUrl + "/api/seckedit",
+        method: "post",
+        data: params
+    })
+}
+export const reqSeckillDel = (params) => {
+    return axios({
+        url: baseUrl + "/api/seckdelete",
+        method: 'post',
+        data: qs.stringify(params)
+    })
+}

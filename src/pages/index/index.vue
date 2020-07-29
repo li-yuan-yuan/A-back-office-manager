@@ -16,39 +16,38 @@
             <i class="el-icon-setting"></i>
             <span slot="title">首页</span>
           </el-menu-item>
-          <el-submenu index="1">
+          <!-- 有目录的循环 -->
+          <el-submenu
+            v-for="item in user.menus"
+            :key="item.id"
+            :index="item.id+''"
+            v-show="hasChildren"
+          >
             <template slot="title">
-              <i class="el-icon-location"></i>
-              <span>系统设置</span>
+              <i :class="item.icon"></i>
+              <span>{{item.title}}</span>
             </template>
             <el-menu-item-group>
-              <el-menu-item index="/menu">菜单管理</el-menu-item>
-              <el-menu-item index="/role">角色管理</el-menu-item>
-              <el-menu-item index="/manage">管理员管理</el-menu-item>
+              <el-menu-item :index="i.url" v-for="i in item.children" :key="i.title">{{i.title}}</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
-          <el-submenu index="2">
-            <template slot="title">
-              <i class="el-icon-location"></i>
-              <span>商品管理</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="/cate">商品分类</el-menu-item>
-              <el-menu-item index="/spec">商品规格</el-menu-item>
-              <el-menu-item index="/goods">商品管理</el-menu-item>
-              <el-menu-item index="/member">会员管理</el-menu-item>
-              <el-menu-item index="/banner">轮播图管理</el-menu-item>
-              <el-menu-item index="/seckill">秒杀活动</el-menu-item>
-            </el-menu-item-group>
-          </el-submenu>
+          <!-- 没有目录，只有菜单 -->
+          <el-menu-item
+            v-show="!hasChildren"
+            :index="i.url"
+            v-for="(i) in user.menus"
+            :key="i.title"
+          >
+            <span slot="title">{{i.title}}</span>
+          </el-menu-item>
         </el-menu>
         <!-- //导航结束 -->
       </el-aside>
       <el-container>
         <el-header>
           <div class="userName">
-            <span>admin</span>
-            <el-button type="primary">退出</el-button>
+            <span>{{user.username}}</span>
+            <el-button type="primary" @click="exit()">退出</el-button>
           </div>
         </el-header>
         <el-main>
@@ -63,13 +62,31 @@
   </div>
 </template>
 <script>
+import { mapGetters, mapActions } from "vuex";
 export default {
   data() {
     return {};
   },
-  computed: {},
+  computed: {
+    ...mapGetters({
+      user: "user",
+    }),
+    //判断是否有目录
+    hasChildren() {
+      return this.user.menus[0].children ? true : false;
+    },
+  },
   components: {},
-  methods: {},
+  methods: {
+      ...mapActions({
+      changeUser: "changeUser",
+    }),
+    //退出
+    exit() {
+      this.changeUser(null);
+      this.$router.push("/login")
+    },
+  },
   mounted() {},
   beforeDestroy() {},
 };
@@ -88,7 +105,7 @@ export default {
   float: right;
   line-height: 60px;
 }
-.view{
-  padding-top:20px ;
+.view {
+  padding-top: 20px;
 }
 </style>
