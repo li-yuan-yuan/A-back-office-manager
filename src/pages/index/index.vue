@@ -17,7 +17,7 @@
             <span slot="title">首页</span>
           </el-menu-item>
           <!-- 有目录的循环 -->
-          <el-submenu
+          <!-- <el-submenu
             v-for="item in user.menus"
             :key="item.id"
             :index="item.id+''"
@@ -30,9 +30,9 @@
             <el-menu-item-group>
               <el-menu-item :index="i.url" v-for="i in item.children" :key="i.title">{{i.title}}</el-menu-item>
             </el-menu-item-group>
-          </el-submenu>
+          </el-submenu> -->
           <!-- 没有目录，只有菜单 -->
-          <el-menu-item
+          <!-- <el-menu-item
             v-show="!hasChildren"
             :index="i.url"
             v-for="(i) in user.menus"
@@ -40,7 +40,51 @@
           >
             <span slot="title">{{i.title}}</span>
           </el-menu-item>
-        </el-menu>
+         -->
+
+        <!-- 可以自动判断有没有子目录 -->
+        <template v-for="item in user.menus">
+          <el-submenu
+            :key="item.id"
+            :index="item.id+''"
+            v-if="item.children"
+          >
+            <template slot="title">
+              <i :class="item.icon"></i>
+              <span>{{item.title}}</span>
+            </template>
+            <el-menu-item-group>
+              <el-menu-item :index="i.url" v-for="i in item.children" :key="i.title">{{i.title}}</el-menu-item>
+            </el-menu-item-group>
+          </el-submenu>
+
+          <el-menu-item
+            :index="item.url"
+            :key="item.title"
+            v-if="!item.children"
+          >
+            <span slot="title">{{item.title}}</span>
+          </el-menu-item>
+        </template>
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</el-menu>
         <!-- //导航结束 -->
       </el-aside>
       <el-container>

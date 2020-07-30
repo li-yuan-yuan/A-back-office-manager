@@ -1,6 +1,7 @@
 import axios from "axios";
 import qs from "qs";
 import store from "../store/index"
+import {warningAlter,successAlter} from "./alter"
 
 // 开发模式
 const baseUrl = "/api";
@@ -22,7 +23,7 @@ axios.interceptors.response.use(res => {
     // console.groupEnd()
 
     if(res.data.msg==="登录已过期或访问权限受限"){
-        warningAlert("登录已过期或访问权限受限")
+        warningAlter("登录已过期或访问权限受限")
         router.push("/login");
         return;
     }

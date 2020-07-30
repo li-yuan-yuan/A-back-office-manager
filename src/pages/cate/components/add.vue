@@ -1,8 +1,8 @@
 <template>
   <div class="add">
     <el-dialog :title="info.title" :visible.sync="info.show">
-      <el-form :model="form">
-        <el-form-item label="上级分类" label-width="120px">
+      <el-form :model="form" :rules="rules" ref="form">
+        <el-form-item label="上级分类" label-width="120px" prop="pid">
           <el-select v-model="form.pid" placeholder>
             <el-option label="===请选择===" value disabled></el-option>
             <el-option label="顶级分类" :value="0"></el-option>
@@ -15,7 +15,7 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="分类名称" label-width="120px">
+        <el-form-item label="分类名称" label-width="120px" prop="catename">
           <el-input v-model="form.catename" autocomplete="off"></el-input>
         </el-form-item>
 
@@ -37,9 +37,9 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd">添 加</el-button>
-        
-        <el-button type="primary" @click="update" v-else>修 改</el-button>
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd">添 加</el-button>
+
+        <el-button type="primary" @click="update('form')" v-else>修 改</el-button>
       </div>
     </el-dialog>
   </div>
@@ -63,6 +63,14 @@ export default {
         catename: "",
         img: null,
         status: 1,
+      },
+      //表单验证
+      rules: {
+        pid: [{ required: true, message: "请选择上级分类", trigger: "change" }],
+        catename: [
+          { required: true, message: "请输入分类名称", trigger: "blur" },
+          { min: 2, max: 5, message: "长度在 2 到 5 个字符", trigger: "change" },
+        ],
       },
     };
   },
@@ -134,16 +142,23 @@ export default {
       this.imageUrl = "";
     },
     //添加
-    add() {
-      reqCateAdd(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlter(res.data.msg);
-          this.empty();
-          this.cancel();
-          //再次请求list数据
-          this.reqCateList();
+    add(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          reqCateAdd(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlter(res.data.msg);
+              this.empty();
+              this.cancel();
+              //再次请求list数据
+              this.reqCateList();
+            } else {
+              warningAlter(res.data.msg);
+            }
+          });
         } else {
-          warningAlter(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
@@ -153,19 +168,25 @@ export default {
         this.form = res.data.list;
         this.form.id = id;
         this.imageUrl = this.$imgPre + res.data.list.img;
-        
       });
     },
     //修改
-    update() {
-      reqCateUpdata(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlter(res.data.msg);
-          this.empty();
-          this.cancel();
-          this.reqCateList();
+    update(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          reqCateUpdata(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlter(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqCateList();
+            } else {
+              warningAlter(res.data.msg);
+            }
+          });
         } else {
-          warningAlter(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },

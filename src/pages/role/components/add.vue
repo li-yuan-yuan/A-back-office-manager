@@ -1,8 +1,8 @@
 <template>
   <div>
     <el-dialog :title="info.title" :visible.sync="info.show">
-      <el-form :model="form">
-        <el-form-item label="角色名称" :label-width="formLabelWidth">
+      <el-form :model="form" :rules="rules" ref="form">
+        <el-form-item label="角色名称" :label-width="formLabelWidth" prop="rolename">
           <el-input v-model="form.rolename" autocomplete="off"></el-input>
         </el-form-item>
 
@@ -24,8 +24,8 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd">添 加</el-button>
-        <el-button type="primary" @click="updata" v-else>确 认</el-button>
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd">添 加</el-button>
+        <el-button type="primary" @click="updata('form')" v-else>确 认</el-button>
       </div>
     </el-dialog>
   </div>
@@ -55,6 +55,13 @@ export default {
         children: "children",
         label: "title",
       },
+      //表单验证
+      rules: {
+        rolename: [
+          { required: true, message: "请输入角色名称", trigger: "blur" },
+          { min: 3, max: 5, message: "长度在 3 到 5 个字符", trigger: "change" },
+        ],
+      },
     };
   },
   computed: {
@@ -75,22 +82,29 @@ export default {
         rolename: "",
         menus: "",
         status: 1,
-      }
-      this.$refs.tree.setCheckedKeys([])
-
+      };
+      this.$refs.tree.setCheckedKeys([]);
     },
     //添加
-    add() {
-      //获取tree的key赋值给form.menus
-      this.form.menus = JSON.stringify(this.$refs.tree.getCheckedKeys());
-      reqRoleAdd(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlter(res.data.msg);
-          this.empty()
-          this.cancel();
-          this.reqRoleList();
+    add(form) {
+      //表单验证
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          //获取tree的key赋值给form.menus
+          this.form.menus = JSON.stringify(this.$refs.tree.getCheckedKeys());
+          reqRoleAdd(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlter(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqRoleList();
+            } else {
+              warningAlter(res.data.msg);
+            }
+          });
         } else {
-          warningAlter(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
@@ -112,16 +126,24 @@ export default {
     },
     //修改
     updata() {
-      //获取tree的key赋值给form.menus
-      this.form.menus = JSON.stringify(this.$refs.tree.getCheckedKeys());
-      reqRoleUpdata(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlter(res.data.msg);
-          this.empty();
-          this.cancel();
-          this.reqRoleList();
+      //表单验证
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          //获取tree的key赋值给form.menus
+          this.form.menus = JSON.stringify(this.$refs.tree.getCheckedKeys());
+          reqRoleUpdata(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlter(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqRoleList();
+            } else {
+              warningAlter(res.data.msg);
+            }
+          });
         } else {
-          warningAlter(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },

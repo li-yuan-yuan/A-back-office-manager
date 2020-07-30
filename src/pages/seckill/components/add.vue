@@ -1,8 +1,8 @@
 <template>
   <div class="add">
     <el-dialog :title="info.title" :visible.sync="info.show">
-      <el-form :model="form">
-        <el-form-item label="活动名称" label-width="120px">
+      <el-form :model="form" :rules="rules" ref="form">
+        <el-form-item label="活动名称" label-width="120px" prop="title">
           <el-input v-model="form.title" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="活动期限" label-width="120px">
@@ -59,9 +59,9 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd">添 加</el-button>
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd">添 加</el-button>
 
-        <el-button type="primary" @click="update" v-else>修 改</el-button>
+        <el-button type="primary" @click="update('form')" v-else>修 改</el-button>
       </div>
     </el-dialog>
   </div>
@@ -99,6 +99,18 @@ export default {
 
       //2000, 10, 10, 10, 10
       value1: [new Date(), new Date()],
+      //表单验证
+      rules: {
+        title: [
+          { required: true, message: "请输入活动名称", trigger: "blur" },
+          {
+            min: 3,
+            max: 15,
+            message: "长度在 3 到 15 个字符",
+            trigger: "change",
+          },
+        ],
+      },
     };
   },
   computed: {
@@ -166,18 +178,25 @@ export default {
       this.value1 = [new Date(), new Date()];
     },
     //添加
-    add() {
-      this.form.begintime = this.value1[0].getTime();
-      this.form.endtime = this.value1[1].getTime();
-      reqSeckillAdd(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlter(res.data.msg);
-          this.empty();
-          this.cancel();
-          //再次请求list数据
-          this.reqSeckillList();
+    add(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          this.form.begintime = this.value1[0].getTime();
+          this.form.endtime = this.value1[1].getTime();
+          reqSeckillAdd(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlter(res.data.msg);
+              this.empty();
+              this.cancel();
+              //再次请求list数据
+              this.reqSeckillList();
+            } else {
+              warningAlter(res.data.msg);
+            }
+          });
         } else {
-          warningAlter(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
@@ -197,17 +216,24 @@ export default {
       });
     },
     //修改
-    update() {
-      this.form.begintime = this.value1[0].getTime();
-      this.form.endtime = this.value1[1].getTime();
-      reqSeckillUpdata(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlter(res.data.msg);
-          this.empty();
-          this.cancel();
-          this.reqSeckillList();
+    update(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          this.form.begintime = this.value1[0].getTime();
+          this.form.endtime = this.value1[1].getTime();
+          reqSeckillUpdata(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlter(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqSeckillList();
+            } else {
+              warningAlter(res.data.msg);
+            }
+          });
         } else {
-          warningAlter(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },

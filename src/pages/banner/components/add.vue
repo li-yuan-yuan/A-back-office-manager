@@ -1,8 +1,8 @@
 <template>
   <div class="adds">
     <el-dialog :title="info.title" :visible.sync="info.show">
-      <el-form :model="form">
-        <el-form-item label="标题" label-width="120px">
+      <el-form :model="form" :rules="rules" ref="form">
+        <el-form-item label="标题" label-width="120px" prop="title">
           <el-input v-model="form.title" autocomplete="off"></el-input>
         </el-form-item>
 
@@ -24,17 +24,21 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd">添 加</el-button>
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd">添 加</el-button>
 
-        <el-button type="primary" @click="update" v-else>修 改</el-button>
+        <el-button type="primary" @click="update('form')" v-else>修 改</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 <script>
-import {reqBannerAdd,reqBannerDetail, reqBannerUpdata} from "../../../util/request"
-import {mapGetters,mapActions} from "vuex"
-import {successAlter,warningAlter} from "../../../util/alter"
+import {
+  reqBannerAdd,
+  reqBannerDetail,
+  reqBannerUpdata,
+} from "../../../util/request";
+import { mapGetters, mapActions } from "vuex";
+import { successAlter, warningAlter } from "../../../util/alter";
 export default {
   props: ["info"],
   data() {
@@ -46,13 +50,20 @@ export default {
         img: "",
         status: 1,
       },
+      //表单验证
+      rules: {
+        title: [
+          { required: true, message: "请输入标题", trigger: "blur" },
+          { min: 2, max: 25, message: "长度在 2 到 25 个字符", trigger: "change" },
+        ],
+      },
     };
   },
   computed: {},
   components: {},
   methods: {
     ...mapActions({
-      reqBannerList:"banner/reqList"
+      reqBannerList: "banner/reqList",
     }),
     //修改图片
     changeImg(e) {
@@ -88,45 +99,57 @@ export default {
         img: "",
         status: 1,
       };
-       this.imageUrl= ""
+      this.imageUrl = "";
     },
     //添加
-    add() {
-      console.log(this.form);
-      reqBannerAdd(this.form).then(res=>{
-        if (res.data.code == 200) {
-          successAlter(res.data.msg);
-          this.empty();
-          this.cancel();
-          //再次请求list数据
-          this.reqBannerList();
+    add(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          reqBannerAdd(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlter(res.data.msg);
+              this.empty();
+              this.cancel();
+              //再次请求list数据
+              this.reqBannerList();
+            } else {
+              warningAlter(res.data.msg);
+            }
+          });
         } else {
-          warningAlter(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
-      })
+      });
     },
     //获取一条的详情
-    getDetail(id){
-      reqBannerDetail({id:id}).then(res=>{
+    getDetail(id) {
+      reqBannerDetail({ id: id }).then((res) => {
         this.form = res.data.list;
         this.form.id = id;
         this.imageUrl = this.$imgPre + res.data.list.img;
-      })
+      });
     },
     //修改
-    update(){
-      reqBannerUpdata(this.form).then(res=>{
-        if (res.data.code == 200) {
-          successAlter(res.data.msg);
-          this.empty();
-          this.cancel();
-          this.reqBannerList();
+    update(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          reqBannerUpdata(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlter(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqBannerList();
+            } else {
+              warningAlter(res.data.msg);
+            }
+          });
         } else {
-          warningAlter(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
-      })
+      });
     },
-    
   },
   mounted() {},
   beforeDestroy() {},

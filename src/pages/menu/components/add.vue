@@ -1,16 +1,16 @@
 <template>
   <div>
     <el-dialog :title="info.title" :visible.sync="info.show">
-      <el-form :model="form">
-        <el-form-item label="菜单名称" label-width="80px">
+      <el-form :model="form" :rules="rules" ref="form">
+        <el-form-item label="菜单名称" label-width="80px" prop="title">
           <el-input v-model="form.title" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="上级菜单" label-width="80px">
+        <el-form-item label="上级菜单" label-width="80px" prop="pid">
           <el-select v-model="form.pid">
             <el-option label="--请选择--" value disabled></el-option>
             <el-option label="顶级菜单" :value="0"></el-option>
             <!-- 动态数据 -->
-            <el-option v-for="item in list" :label="item.title" :key="item.id" :value="item.id"> </el-option>
+            <el-option v-for="item in list" :label="item.title" :key="item.id" :value="item.id"></el-option>
           </el-select>
         </el-form-item>
 
@@ -38,9 +38,9 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button  @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd">添 加</el-button>
-        <el-button type="primary" @click="update" v-else>修 改</el-button>
+        <el-button @click="cancel">取 消</el-button>
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd">添 加</el-button>
+        <el-button type="primary" @click="update('form')" v-else>修 改</el-button>
       </div>
     </el-dialog>
   </div>
@@ -74,7 +74,7 @@ export default {
         "/goods",
         "/banner",
         "/seckill",
-        "/member"
+        "/member",
       ],
       form: {
         pid: 0,
@@ -83,6 +83,14 @@ export default {
         type: 1,
         url: "",
         status: 1,
+      },
+      //表单验证
+      rules: {
+        title: [
+          { required: true, message: "请输入菜单名称", trigger: "blur" },
+          { min: 3, max: 5, message: "长度在 3 到 5 个字符", trigger: "change" },
+        ],
+        pid: [{ required: true, message: "请选择上级菜单", trigger: "change" }],
       },
     };
   },
@@ -114,23 +122,30 @@ export default {
         this.empty();
       }
     },
-    add() {
-      // if(!this.info.isAdd){
-      //   this.empty();
-      // }
-      reqMenuAdd(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlter(res.data.msg);
-          //重置form数据
-          this.empty();
-          //弹框消失
-          this.cancel();
-          //再次请求list数据
-          this.reqList();
+    add(form) {
+      //表单验证
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          reqMenuAdd(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlter(res.data.msg);
+              //重置form数据
+              this.empty();
+              //弹框消失
+              this.cancel();
+              //再次请求list数据
+              this.reqList();
+            } else {
+              warningAlter(res.data.msg);
+            }
+          });
         } else {
-          warningAlter(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
+
+      // ===============================
     },
     //获取某一条数据
     getDetail(id) {
@@ -139,17 +154,27 @@ export default {
         this.form.id = id;
       });
     },
-    update() {
-      reqMenuUpdata(this.form).then((res) => {
-        if (res.data.code == 200) {
-          // this.empty();
-          this.cancel();
-          this.reqList();
-        }else{
-            warningAlter(res.data.msg)
+    update(form) {
+      //表单验证
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          alert("submit!");
+          //请求
+          reqMenuUpdata(this.form).then((res) => {
+            if (res.data.code == 200) {
+              // this.empty();
+              this.cancel();
+              this.reqList();
+            } else {
+              warningAlter(res.data.msg);
+            }
+          });
+        } else {
+          console.log("error submit!!");
+          return false;
         }
       });
-    }
+    },
   },
   mounted() {},
   beforeDestroy() {},

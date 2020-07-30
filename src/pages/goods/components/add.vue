@@ -1,8 +1,8 @@
 <template>
   <div class="add">
     <el-dialog :title="info.title" :visible.sync="info.show" @opened="createEditor">
-      <el-form :model="form">
-        <el-form-item label="一级分类" label-width="120px">
+      <el-form :model="form" :rules="rules" ref="form">
+        <el-form-item label="一级分类" label-width="120px" prop="first_cateid">
           <el-select v-model="form.first_cateid" placeholder @change="changeFirstCateId()">
             <el-option label="===请选择===" value disabled></el-option>
             <!-- 动态数据 -->
@@ -15,7 +15,7 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="二级分类" label-width="120px">
+        <el-form-item label="二级分类" label-width="120px" prop="second_cateid">
           <el-select v-model="form.second_cateid" placeholder>
             <el-option label="===请选择===" value disabled></el-option>
             <!-- 动态数据 -->
@@ -28,7 +28,7 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="商品名称" label-width="120px">
+        <el-form-item label="商品名称" label-width="120px" prop="goodsname">
           <el-input v-model="form.goodsname" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="价格" label-width="120px">
@@ -90,9 +90,9 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isAdd">添 加</el-button>
+        <el-button type="primary" @click="add('form')" v-if="info.isAdd">添 加</el-button>
 
-        <el-button type="primary" @click="update" v-else>修 改</el-button>
+        <el-button type="primary" @click="update('form')" v-else>修 改</el-button>
       </div>
     </el-dialog>
   </div>
@@ -110,7 +110,7 @@ export default {
   props: ["info"],
   data() {
     return {
-        editor:null,
+      editor: null,
       //商品规格属性
       attrsArr: [],
       //二级分类属性
@@ -131,6 +131,19 @@ export default {
         ishot: 1,
         status: 1,
       },
+      //表单验证
+      rules: {
+        first_cateid: [
+          { required: true, message: "请选择一级分类", trigger: "change" },
+        ],
+        second_cateid: [
+          { required: true, message: "请选择二级分类", trigger: "change" },
+        ],
+        goodsname: [
+          { required: true, message: "请输入商品名称", trigger: "blur" },
+          { min: 2, max: 5, message: "长度在 2 到 5 个字符", trigger: "change" },
+        ],
+      },
     };
   },
   computed: {
@@ -145,13 +158,13 @@ export default {
       reqCateList: "cate/reqList",
       reqSpecList: "spec/reqList",
       reqGoodsList: "goods/reqList",
-      reqGoodsTotal:"goods/reqTotal",
+      reqGoodsTotal: "goods/reqTotal",
     }),
     //创建编辑器
     createEditor() {
       this.editor = new E("#desc");
-        this.editor.create();
-        this.editor.txt.html(this.form.description)
+      this.editor.create();
+      this.editor.txt.html(this.form.description);
     },
     //修改了一级分类
     changeFirstCateId(bool) {
@@ -228,20 +241,27 @@ export default {
       this.editor.txt.html("");
     },
     //添加
-    add() {
-       this.form.specsattr=JSON.stringify(this.form.specsattr); 
-      this.form.description = this.editor.txt.html();
-      console.log(this.form);
-      reqGoodsAdd(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlter(res.data.msg);
-          this.empty();
-          this.cancel();
-          //再次请求list数据
-          this.reqGoodsList();
-          this.reqGoodsTotal()
+    add(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          this.form.specsattr = JSON.stringify(this.form.specsattr);
+          this.form.description = this.editor.txt.html();
+          console.log(this.form);
+          reqGoodsAdd(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlter(res.data.msg);
+              this.empty();
+              this.cancel();
+              //再次请求list数据
+              this.reqGoodsList();
+              this.reqGoodsTotal();
+            } else {
+              warningAlter(res.data.msg);
+            }
+          });
         } else {
-          warningAlter(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
@@ -252,24 +272,31 @@ export default {
         this.form.id = id;
         this.imageUrl = this.$imgPre + res.data.list.img;
         //根据一级分类计算出二级分类数组
-        this.changeFirstCateId(true)
+        this.changeFirstCateId(true);
         //根据商品规格计算出商品属性
-        this.changeSpec(true)
-        this.form.specsattr=JSON.parse(this.form.specsattr)
+        this.changeSpec(true);
+        this.form.specsattr = JSON.parse(this.form.specsattr);
       });
     },
     //修改
-    update() {
-        this.form.description=this.editor.txt.html();
-        this.form.specsattr=JSON.stringify(this.form.specsattr)
-      reqGoodsUpdata(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlter(res.data.msg);
-          this.empty();
-          this.cancel();
-          this.reqGoodsList();
+    update(form) {
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          this.form.description = this.editor.txt.html();
+          this.form.specsattr = JSON.stringify(this.form.specsattr);
+          reqGoodsUpdata(this.form).then((res) => {
+            if (res.data.code == 200) {
+              successAlter(res.data.msg);
+              this.empty();
+              this.cancel();
+              this.reqGoodsList();
+            } else {
+              warningAlter(res.data.msg);
+            }
+          });
         } else {
-          warningAlter(res.data.msg);
+          console.log("error submit!!");
+          return false;
         }
       });
     },
